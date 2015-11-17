@@ -24,4 +24,12 @@ public class Ground {
     public void draw(Canvas canvas){
         canvas.drawRect(rect,paint);
     }
+
+    public boolean isShown(int width,int height){
+        return rect.intersects(0,0,width,height);
+    }
+
+    public boolean isAvailable(){
+        return rect.right > 0;
+    }
 }
