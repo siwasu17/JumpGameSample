@@ -14,6 +14,7 @@ import android.view.View;
 public class GameView extends View implements Angel.Callback{
     private Angel angel;
     private static final int START_GROUND_HEIGHT = 50;
+    private static final int GROUND_MOVE_TO_LEFT = 10;
     private Ground ground;
 
     private static final int MAX_TOUCH_TIME = 500; //msec
@@ -72,6 +73,8 @@ public class GameView extends View implements Angel.Callback{
 
         angel.move();
         angel.draw(canvas);
+
+        ground.move(GROUND_MOVE_TO_LEFT);
         ground.draw(canvas);
 
         invalidate();
@@ -84,6 +87,11 @@ public class GameView extends View implements Angel.Callback{
      */
     @Override
     public int getDistanceFromGround(Angel angel) {
+        boolean horizontal
+                = !(angel.rect.left >= ground.rect.right || angel.rect.right <= ground.rect.left);
+        if(!horizontal){
+            return Integer.MAX_VALUE;
+        }
         return ground.rect.top - angel.rect.bottom;
     }
 }

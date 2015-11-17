@@ -17,6 +17,10 @@ public class Ground {
         paint.setColor(Color.rgb(153, 76, 0));
     }
 
+    public void move(int moveToLeft){
+        rect.offset(-moveToLeft,0);
+    }
+
     public void draw(Canvas canvas){
         canvas.drawRect(rect,paint);
     }
