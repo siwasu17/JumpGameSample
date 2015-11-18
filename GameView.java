@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -80,6 +82,7 @@ public class GameView extends SurfaceView implements Angel.Callback, SurfaceHold
     }
 
 
+
     /**
      * Game Main
      */
@@ -88,6 +91,25 @@ public class GameView extends SurfaceView implements Angel.Callback, SurfaceHold
     private static final int ADD_GROUND_COUNT = 5;
     private static final int GROUND_WIDTH = 340;
     private static final int GROUND_BLOCK_HEIGHT = 100;
+    private static final int POWER_GAUGE_HEIGHT = 30;
+    private static final Paint PAINT_POWER_GAUGE = new Paint();
+    static {
+        PAINT_POWER_GAUGE.setColor(Color.RED);
+    }
+
+    public interface Callback{
+        void onGameOver();
+    }
+
+    private Callback callback;
+
+    public void setCallback(Callback callback){
+        this.callback = callback;
+    }
+
+    private final Handler handler;
+    private boolean isGameOver;
+
 
     private Angel angel;
     private Ground lastGround;
@@ -100,7 +122,26 @@ public class GameView extends SurfaceView implements Angel.Callback, SurfaceHold
 
     public GameView(Context context) {
         super(context);
+
+        handler = new Handler();
+
         getHolder().addCallback(this);
+    }
+
+    private void gameOver(){
+        if(isGameOver){
+            return;
+        }
+        isGameOver = true;
+        angel.shutdown();
+
+        //非同期にメインスレッドに通知するためHandlerを使う
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                callback.onGameOver();
+            }
+        });
     }
 
     @Override
@@ -153,8 +194,14 @@ public class GameView extends SurfaceView implements Angel.Callback, SurfaceHold
             for (int i = 0; i < ADD_GROUND_COUNT; i++) {
                 int left = lastGround.rect.right;
                 int groundHeight = rand.nextInt(height / GROUND_BLOCK_HEIGHT) * GROUND_BLOCK_HEIGHT / 2 + START_GROUND_HEIGHT;
-                lastGround = new Ground(left, height - groundHeight,
-                        left + GROUND_WIDTH, height);
+
+                if(i % 2 == 0){
+                    lastGround = new Ground(left, height - groundHeight,
+                            left + GROUND_WIDTH, height);
+                }else{
+                    lastGround = new Blank(left, height - 1,
+                            left + GROUND_WIDTH, height);
+                }
                 groundList.add(lastGround);
             }
         }
@@ -175,6 +222,12 @@ public class GameView extends SurfaceView implements Angel.Callback, SurfaceHold
 
         angel.move();
         angel.draw(canvas);
+
+        //ジャンプゲージを表示
+        if(touchDownStartTime > 0){
+            float elapsedTime = System.currentTimeMillis() - touchDownStartTime;
+            canvas.drawRect(0,0,width * (elapsedTime / MAX_TOUCH_TIME),POWER_GAUGE_HEIGHT,PAINT_POWER_GAUGE);
+        }
 
     }
 
@@ -197,7 +250,18 @@ public class GameView extends SurfaceView implements Angel.Callback, SurfaceHold
                     = !(angel.rect.left >= g.rect.right || angel.rect.right <= g.rect.left);
             //キャラのいる地面を対象にする
             if (horizontal) {
-                return g.rect.top - angel.rect.bottom;
+                if(!g.isSolid()){
+                    //穴は落ちる
+                    return Integer.MAX_VALUE;
+                }
+
+                int distance =  g.rect.top - angel.rect.bottom;
+                if(distance < 0){
+                    //おしまい
+                    gameOver();
+                    return Integer.MAX_VALUE;
+                }
+                return distance;
             }
         }
         //どこかに乗ってなければ無限落下

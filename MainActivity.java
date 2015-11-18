@@ -4,16 +4,24 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements GameView.Callback {
 
     private GameView gameView;
+
+    @Override
+    public void onGameOver() {
+        Toast.makeText(this,"Game Over",Toast.LENGTH_LONG).show();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         gameView = new GameView(this);
-        //setContentView(R.layout.activity_main);
+        //ゲームオーバー時に終了処理を読んでもらうために登録
+        gameView.setCallback(this);
+
         setContentView(gameView);
     }
 

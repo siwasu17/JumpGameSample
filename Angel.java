@@ -17,6 +17,9 @@ public class Angel {
 
     private static final float GRAVITY = 0.8f;
     private static final float WEIGHT = GRAVITY * 60;
+    private static final int COLLISION_MARGIN_LEFT = 5;
+    private static final int COLLISION_MARGIN_RIGHT = 5;
+
     private float acceleration = 0;
 
     public interface Callback{
@@ -27,13 +30,21 @@ public class Angel {
 
 
     public Angel(Bitmap bitmap, int left, int top, Callback callback) {
-        this.rect = new Rect(left, top, left + bitmap.getWidth(), top + bitmap.getHeight());
+        int rectLeft = left + COLLISION_MARGIN_LEFT;
+        int rectRight = left + bitmap.getWidth() - COLLISION_MARGIN_RIGHT;
+
+        this.rect = new Rect(rectLeft, top,rectRight, top + bitmap.getHeight());
         this.bitmap = GameUtils.makeTransparent(bitmap);
         this.callback = callback;
     }
 
     public void draw(Canvas canvas) {
-        canvas.drawBitmap(bitmap, rect.left, rect.top, paint);
+        /*
+        Paint p = new Paint();
+        p.setColor(Color.BLUE);
+        canvas.drawRect(rect,p);
+        */
+        canvas.drawBitmap(bitmap, rect.left - COLLISION_MARGIN_LEFT, rect.top, paint);
     }
 
     public void jump(float power){
@@ -49,4 +60,9 @@ public class Angel {
 
         rect.offset(0, -Math.round(acceleration));
     }
+
+    public void shutdown(){
+        acceleration = 0;
+    }
+
 }
