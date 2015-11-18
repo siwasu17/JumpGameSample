@@ -12,7 +12,7 @@ public class MainActivity extends ActionBarActivity implements GameView.Callback
 
     @Override
     public void onGameOver() {
-        Toast.makeText(this,"Game Over",Toast.LENGTH_LONG).show();
+        Toast.makeText(this,"Game Over!  Tap to restart",Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -45,5 +45,21 @@ public class MainActivity extends ActionBarActivity implements GameView.Callback
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    //中断対策
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //ゲーム進行再開
+        gameView.startDrawThread();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //ゲーム進行停止
+        gameView.stopDrawThread();
     }
 }

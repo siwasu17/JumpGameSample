@@ -65,4 +65,9 @@ public class Angel {
         acceleration = 0;
     }
 
+    public void reset(){
+        this.rect.offsetTo(0,0);
+        this.acceleration = 0;
+    }
+
 }

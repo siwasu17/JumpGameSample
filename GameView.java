@@ -109,7 +109,7 @@ public class GameView extends SurfaceView implements Angel.Callback, SurfaceHold
 
     private final Handler handler;
     private boolean isGameOver;
-
+    private boolean needRestart;
 
     private Angel angel;
     private Ground lastGround;
@@ -152,11 +152,20 @@ public class GameView extends SurfaceView implements Angel.Callback, SurfaceHold
                 return true;
             case MotionEvent.ACTION_UP:
                 jumpAngel();
+
+                if(isGameOver){
+                    restartGame();
+                }
                 break;
             default:
                 break;
         }
         return super.onTouchEvent(event);
+    }
+
+    private void restartGame(){
+        isGameOver = false;
+        angel.reset();
     }
 
     private void jumpAngel() {
